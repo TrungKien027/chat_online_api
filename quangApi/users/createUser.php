@@ -41,4 +41,3 @@ if (isset($data['name']) && isset($data['email']) && isset($data['password'])) {
     // Nếu dữ liệu không hợp lệ
     echo json_encode(['success' => false, 'message' => 'Vui lòng nhập đầy đủ thông tin!']);
 }
-?>

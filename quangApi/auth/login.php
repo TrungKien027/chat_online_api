@@ -1,8 +1,44 @@
 <?php
 header('Content-Type: application/json');
-require_once '../../source/models/Auth.php';
+header('Access-Control-Allow-Origin: *'); 
+header('Access-Control-Allow-Methods: POST');
+header('Access-Control-Allow-Headers: Content-Type');
+
+require_once '../../source/models/Auth.php'; 
 $auth = new Auth();
-$data = json_decode(file_get_contents("php://input"), true);
-// $data = ['email' => 'quang@gmail.com', "password" => 'qua1ng1'];
-$response = $auth->login($data['email'], $data['password']);
-echo json_encode($response);
+
+// Kiểm tra yêu cầu POST
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Lấy dữ liệu từ body
+    $data = json_decode(file_get_contents('php://input'), true);
+    $email = isset($data['email']) ? $data['email'] : null;
+    $password = isset($data['password']) ? $data['password'] : null;
+
+    // Kiểm tra xem email và mật khẩu có được cung cấp không
+    if (empty($email) || empty($password)) {
+        echo json_encode(['success' => false, 'message' => 'Email và mật khẩu là bắt buộc.']);
+        exit;
+    }
+
+    // Kiểm tra định dạng email
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['success' => false, 'message' => 'Email không hợp lệ.']);
+        exit;
+    }
+
+    // Gọi hàm login
+    $response = $auth->login($email, $password);
+
+    // Kiểm tra kết quả trả về từ hàm login
+    if (!$response['success']) {
+        echo json_encode(['success' => false, 'message' => $response['message']]);
+    } else {
+        // Nếu đăng nhập thành công, trả về thông tin người dùng
+        echo json_encode($response);
+    }
+} else {
+    // Nếu không phải là yêu cầu POST
+    echo json_encode(['success' => false, 'message' => 'Yêu cầu không hợp lệ.']);
+}
+?>
+
