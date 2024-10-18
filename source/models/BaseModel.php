@@ -1,12 +1,11 @@
-<?php 
-require_once __DIR__.'/../config/database.php';
-require_once __DIR__.'/../interface/ModelInterface.php';
-
+<?php
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../interface/ModelInterface.php';
 abstract class BaseModel extends Database implements ModelInterface
 {
     protected $conn; // Thuộc tính kết nối
-
-    public function __construct() {
+    public function __construct()
+    {
         $this->conn = Database::connect(); // Kết nối cơ sở dữ liệu
     }
 
