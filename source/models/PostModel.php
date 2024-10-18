@@ -11,9 +11,8 @@ class Post extends BaseModel
     {
         $stmt = $this->conn->prepare("INSERT INTO " . $this->getTable() . " (user_id, content, created_at, updated_at) VALUES (?, ?, NOW(), NOW())");
         $stmt->execute([$data['user_id'], $data['content']]);
-        return $this->conn->lastInsertId(); // Trả về ID của bản ghi vừa thêm
+        return $this->conn->lastInsertId();
     }
-
     public function read($id)
     {
         $stmt = $this->conn->prepare("SELECT * FROM " . $this->getTable() . " WHERE id = ?");
@@ -41,19 +40,12 @@ class Post extends BaseModel
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
-
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     public function getAll()
     {
-        try {
-            $sql = "SELECT * FROM " . $this->getTable();
-            $stmt = $this->conn->query($sql); // Sử dụng kết nối đã lưu trữ
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            // Xử lý lỗi
-            echo "Error: " . $e->getMessage();
-            return []; // Trả về mảng rỗng nếu có lỗi
-        }
+        $sql = "SELECT * FROM " . $this->getTable();
+        $stmt = $this->conn->query($sql); // Sử dụng kết nối đã lưu trữ
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
