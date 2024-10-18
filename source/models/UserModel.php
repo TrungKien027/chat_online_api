@@ -110,32 +110,6 @@ class UserModel extends BaseModel
         $stmt->execute([':id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-
-    public function getUserInfoByUserId($id)
-    {
-        $sql = "SELECT * FROM user_info WHERE user_id = :user_id";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([':user_id' => $id]);
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
-    public function getUserWithInfo($user_id)
-    {
-        $sql = "
-            SELECT u.id, u.email, u.name, u.status, 
-                   ui.age, ui.gender, ui.phone, ui.created_at AS user_info_created_at, ui.updated_at 
-            FROM users u
-            LEFT JOIN user_info ui ON u.id = ui.user_id
-            WHERE u.id = :user_id
-        ";
-
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
     // Triển khai phương thức delete để xóa dữ liệu trong bảng users
     public function deleteUser($id)
     {
@@ -177,57 +151,9 @@ class UserModel extends BaseModel
     }
 
 
-    public function getFriendship($user_id)
-    {
-        $sql = "
-        SELECT u.id, u.name, u.email, u.status, f.status AS friendship_status
-        FROM friendships f
-        JOIN users u ON (f.friend_id = u.id OR f.user_id = u.id) 
-        WHERE (f.user_id = :user_id OR f.friend_id = :user_id) 
-          AND u.id != :user_id
-          AND f.status = 'accepted'
-    ";
-
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
     // Trả về tên bảng cho model này
     protected function getTable()
     {
         return 'users';
     }
-
-    public function updateUserInfo1($user_id, $name, $age, $gender, $phone) {
-        // Cập nhật thông tin trong bảng users
-        $sqlUpdateUser = "
-            UPDATE users
-            SET name = :name
-            WHERE id = :user_id
-        ";
-    
-        $stmtUser = $this->conn->prepare($sqlUpdateUser);
-        $stmtUser->bindParam(':name', $name);
-        $stmtUser->bindParam(':user_id', $user_id);
-        $stmtUser->execute();
-    
-        // Cập nhật thông tin trong bảng user_info
-        $sqlUpdateUserInfo = "
-            UPDATE user_info
-            SET age = :age, gender = :gender, phone = :phone
-            WHERE user_id = :user_id
-        ";
-    
-        $stmtUserInfo = $this->conn->prepare($sqlUpdateUserInfo);
-        $stmtUserInfo->bindParam(':age', $age);
-        $stmtUserInfo->bindParam(':gender', $gender);
-        $stmtUserInfo->bindParam(':phone', $phone);
-        $stmtUserInfo->bindParam(':user_id', $user_id);
-    
-        return $stmtUserInfo->execute(); // Trả về kết quả của lần cập nhật thông tin người dùng
-    }
-    
 }
