@@ -147,33 +147,24 @@ class UserModel extends BaseModel
     // Phương thức tìm kiếm người dùng theo email
     public function getUserByEmail($email)
     {
-        try {
-            $sql = "SELECT * FROM " . $this->getTable() . " WHERE email = :email";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute([':email' => $email]);
-            return $stmt->fetch(PDO::FETCH_ASSOC); // Trả về người dùng tìm thấy
-        } catch (PDOException $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
+        $sql = "SELECT * FROM " . $this->getTable() . " WHERE email = :email";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([':email' => $email]);
+        return $stmt->fetch(PDO::FETCH_ASSOC); // Trả về người dùng tìm thấy
+
     }
 
 
     // Tìm kiếm người dùng phân trang
     public function searchUsers($keyword, $offset, $limit)
     {
-        try {
-            $sql = "SELECT * FROM users WHERE name LIKE :keyword LIMIT :offset, :limit";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bindValue(':keyword', '%' . $keyword . '%', PDO::PARAM_STR);
-            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-            $stmt->execute();
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            echo "Error: " . $e->getMessage();
-            return [];
-        }
+        $sql = "SELECT * FROM users WHERE name LIKE :keyword LIMIT :offset, :limit";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindValue(':keyword', '%' . $keyword . '%', PDO::PARAM_STR);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
 
