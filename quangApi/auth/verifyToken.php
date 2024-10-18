@@ -1,13 +1,14 @@
 <?php
-header('Content-Type: applicaiton/json');
+header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Headers: Content-Type');
+
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
 require_once '../../source/models/UserModel.php'; // Nhúng model
 require_once '../../source/models/TokenModel.php'; // Nhúng token model
 
 $userModel = new UserModel();
-$tokemModel = new TokenModel();
+$tokenModel = new TokenModel(); // Sửa lại tên biến đúng
 
 // Kiểm tra yêu cầu POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -17,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if ($token) {
         // Gọi hàm verifyToken để kiểm tra token
-        $isValid = $tokemModel->verifyToken($token);
+        $isValid = $tokenModel->verifyToken($token); // Đúng tên biến
         if ($isValid) {
             echo json_encode(['success' => true, 'message' => 'Token hợp lệ']);
         } else {
