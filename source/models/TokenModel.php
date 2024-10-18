@@ -34,15 +34,10 @@ class TokenModel extends BaseModel
     // Phương thức kiểm tra token
     public function verifyToken($token)
     {
-        try {
-            $sql = "SELECT * FROM token WHERE token = :token AND expired_at > NOW()";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->execute([':token' => $token]);
-            return $stmt->fetch(PDO::FETCH_ASSOC); // Trả về bản ghi token hợp lệ
-        } catch (PDOException $e) {
-            echo "Error: " . $e->getMessage();
-            return null;
-        }
+        $sql = "SELECT * FROM token WHERE token = :token AND expired_at > NOW()";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([':token' => $token]);
+        return $stmt->fetch(PDO::FETCH_ASSOC); // Trả về bản ghi token hợp lệ
     }
     // Xóa token (ví dụ sau khi xác thực)
     public function deleteToken($token)
