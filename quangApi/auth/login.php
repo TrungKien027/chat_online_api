@@ -1,10 +1,10 @@
 <?php
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *'); 
+header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
-require_once '../../source/models/Auth.php'; 
+require_once '../../source/models/Auth.php';
 $auth = new Auth();
 
 // Kiểm tra yêu cầu POST
@@ -40,5 +40,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Nếu không phải là yêu cầu POST
     echo json_encode(['success' => false, 'message' => 'Yêu cầu không hợp lệ.']);
 }
-?>
-
