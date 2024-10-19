@@ -221,4 +221,19 @@ class UserModel extends BaseModel
 
         return $stmtUserInfo->execute(); // Trả về kết quả của lần cập nhật thông tin người dùng
     }
+
+    public function userActive($id)
+    {
+        // Tạo chuỗi câu lệnh SQL
+        $sql = "UPDATE " . $this->getTable() . " SET status = 1 WHERE id = :id";
+
+        // Chuẩn bị câu lệnh
+        $stmt = $this->conn->prepare($sql);
+
+        // Liên kết tham số
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+
+        // Thực thi câu lệnh
+        return $stmt->execute(); // Trả về true nếu thực thi thành công, ngược lại false
+    }
 }
