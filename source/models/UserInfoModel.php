@@ -38,6 +38,21 @@ class UserInfoModel extends BaseModel
         }
         return $stmt->execute();
     }
+    public function createUserInfoDefault($user_id)
+{
+    // Xây dựng câu lệnh SQL với đầy đủ các cột
+    $sql = "INSERT INTO user_info (user_id, created_at, updated_at) VALUES (:user_id, NOW(), NOW())";
+
+    // Chuẩn bị câu lệnh
+    $stmt = $this->conn->prepare($sql);
+
+    // Gán giá trị cho tham số
+    $stmt->bindParam(':user_id', $user_id);
+
+    // Thực thi câu lệnh và trả về kết quả
+    return $stmt->execute();
+}
+
     // Lấy thông tin người dùng theo ID
     public function getUserInfoById($userId)
     {

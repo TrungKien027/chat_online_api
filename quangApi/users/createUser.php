@@ -6,9 +6,10 @@ header('Access-Control-Allow-Headers: Content-Type'); // Các header được ph
 require_once '../../source/models/UserModel.php'; // Nhúng model
 require_once '../../source/models/TokenModel.php'; // Nhúng token model
 
-
+require_once '../../source/models/UserInfoModel.php';
 // Tạo một instance của UserModel
 $userModel = new UserModel();
+$userInfoModel = new userInfoModel();
 
 // Lấy dữ liệu JSON từ yêu cầu
 $data = json_decode(file_get_contents("php://input"), true);
@@ -32,6 +33,7 @@ if (isset($data['name']) && isset($data['email']) && isset($data['password'])) {
     // Kiểm tra kết quả trả về
     if ($response) {
         // Nếu thành công
+        $userInfoModel->createUserInfoDefault($response['user_id']);
         echo json_encode(['success' => true, 'message' => 'Đăng ký thành công!']);
     } else {
         // Nếu không thành công

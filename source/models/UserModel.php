@@ -36,7 +36,7 @@ class UserModel extends BaseModel
         $stmt->execute([
             ':email' => $data['email'],
             ':password' => $passwordHash,
-            ':status' => 1, // Giả sử trạng thái mặc định là 1 (hoạt động)
+            ':status' => 0, // Giả sử trạng thái mặc định là 1 (hoạt động)
             ':name' => htmlspecialchars($data['name']) // Xử lý HTML để ngăn chặn XSS
         ]);
         $userId = $this->conn->lastInsertId(); // Lấy ID người dùng vừa tạo
@@ -192,33 +192,33 @@ class UserModel extends BaseModel
         return 'users';
     }
 
-    public function updateUserInfo1($user_id, $name, $age, $gender, $phone) {
+    public function updateUserInfo1($user_id, $name, $age, $gender, $phone)
+    {
         // Cập nhật thông tin trong bảng users
         $sqlUpdateUser = "
             UPDATE users
             SET name = :name
             WHERE id = :user_id
         ";
-    
+
         $stmtUser = $this->conn->prepare($sqlUpdateUser);
         $stmtUser->bindParam(':name', $name);
         $stmtUser->bindParam(':user_id', $user_id);
         $stmtUser->execute();
-    
+
         // Cập nhật thông tin trong bảng user_info
         $sqlUpdateUserInfo = "
             UPDATE user_info
             SET age = :age, gender = :gender, phone = :phone
             WHERE user_id = :user_id
         ";
-    
+
         $stmtUserInfo = $this->conn->prepare($sqlUpdateUserInfo);
         $stmtUserInfo->bindParam(':age', $age);
         $stmtUserInfo->bindParam(':gender', $gender);
         $stmtUserInfo->bindParam(':phone', $phone);
         $stmtUserInfo->bindParam(':user_id', $user_id);
-    
+
         return $stmtUserInfo->execute(); // Trả về kết quả của lần cập nhật thông tin người dùng
     }
-    
 }
