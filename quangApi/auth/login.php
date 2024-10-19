@@ -1,11 +1,13 @@
 <?php
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *'); 
+header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
-require_once '../../source/models/Auth.php'; 
+require_once '../../source/models/Auth.php';
+require_once '../../source/models/UserModel.php';
 $auth = new Auth();
+$userModel = new UserModel();
 
 // Kiểm tra yêu cầu POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -31,8 +33,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Kiểm tra kết quả trả về từ hàm login
     if (!$response['success']) {
-        echo json_encode(['success' => false, 'message' => $response['message']]);
+        echo json_encode(['success' => false, 'message' => "Đăng nhập không thành công."]);
     } else {
+        $userModel->userActive($response['user']['id']);
         // Nếu đăng nhập thành công, trả về thông tin người dùng
         echo json_encode($response);
     }
@@ -40,5 +43,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Nếu không phải là yêu cầu POST
     echo json_encode(['success' => false, 'message' => 'Yêu cầu không hợp lệ.']);
 }
-?>
-
