@@ -2,12 +2,11 @@
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST');
-
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
+
 require_once '../../source/models/UserModel.php'; // Nhúng model
 require_once '../../source/models/TokenModel.php'; // Nhúng token model
 
-$userModel = new UserModel();
 $tokenModel = new TokenModel(); // Sửa lại tên biến đúng
 
 // Kiểm tra yêu cầu POST
@@ -17,10 +16,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $token = isset($data['token']) ? $data['token'] : null;
 
     if ($token) {
-        // Gọi hàm verifyToken để kiểm tra token
-        $isValid = $tokenModel->verifyToken($token); // Đúng tên biến
+        $isValid = $tokenModel->verifyToken($token);
+        
         if ($isValid) {
-            echo json_encode(['success' => true, 'message' => 'Token hợp lệ']);
+            $userId = $tokenModel->getUserIdFromToken($token); 
+    
+            if ($userId) {
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Token hợp lệ',
+                    'userId' => $userId
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Không tìm thấy userId'
+                ]);
+            }
         } else {
             echo json_encode(['success' => false, 'message' => 'Token không hợp lệ']);
         }
@@ -28,5 +40,5 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo json_encode(['success' => false, 'message' => 'Không có token']);
     }
 } else {
-    echo json_encode(['success' => false, 'message' => 'Yêu cầu không hợp lệ1']);
+    echo json_encode(['success' => false, 'message' => 'Yêu cầu không hợp lệ']);
 }
