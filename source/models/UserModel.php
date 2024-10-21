@@ -202,44 +202,46 @@ class UserModel extends BaseModel
         return 'users';
     }
 
-    public function updateUserInfo1($user_id, $name, $age, $gender, $phone) {
+    public function updateUserInfo1($user_id, $name, $age, $gender, $phone)
+    {
         // Cập nhật thông tin trong bảng users
         $sqlUpdateUser = "
             UPDATE users
             SET name = :name
             WHERE id = :user_id
         ";
-    
+
         $stmtUser = $this->conn->prepare($sqlUpdateUser);
         $stmtUser->bindParam(':name', $name);
         $stmtUser->bindParam(':user_id', $user_id);
         $stmtUser->execute();
-    
+
         // Cập nhật thông tin trong bảng user_info
         $sqlUpdateUserInfo = "
             UPDATE user_info
             SET age = :age, gender = :gender, phone = :phone
             WHERE user_id = :user_id
         ";
-    
+
         $stmtUserInfo = $this->conn->prepare($sqlUpdateUserInfo);
         $stmtUserInfo->bindParam(':age', $age);
         $stmtUserInfo->bindParam(':gender', $gender);
         $stmtUserInfo->bindParam(':phone', $phone);
         $stmtUserInfo->bindParam(':user_id', $user_id);
-    
+
         return $stmtUserInfo->execute(); // Trả về kết quả của lần cập nhật thông tin người dùng
     }
 
     //SELECT * FROM `media INNER JOIN users ON users.id = media.user_id WHERE user_id = 4 AND is_avatar = 1 LIMIT 1 LAY AVATAR
-     public function GetAvatarUserByMedia($id)
+    public function GetAvatarUserByMedia($id)
     {
         $sql =   "SELECT media.url FROM users LEFT JOIN media ON media.user_id = users.id AND media.is_avatar = 1 WHERE users.id = :id";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([':id' => $id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    public function updatePassword($userId, $oldPassword, $newPassword) {
+    public function updatePassword($userId, $oldPassword, $newPassword)
+    {
         $query = "SELECT password FROM users WHERE id = :user_id";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(':user_id', $userId);
@@ -254,7 +256,21 @@ class UserModel extends BaseModel
             $updateStmt->bindParam(':user_id', $userId);
             return $updateStmt->execute();
         } else {
-            return false; 
+            return false;
         }
+    }
+    public function userActive($id)
+    {
+        // Tạo chuỗi câu lệnh SQL
+        $sql = "UPDATE " . $this->getTable() . " SET status = 1 WHERE id = :id";
+
+        // Chuẩn bị câu lệnh
+        $stmt = $this->conn->prepare($sql);
+
+        // Liên kết tham số
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+
+        // Thực thi câu lệnh
+        return $stmt->execute(); // Trả về true nếu thực thi thành công, ngược lại false
     }
 }
