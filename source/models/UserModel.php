@@ -147,33 +147,43 @@ class UserModel extends BaseModel
     // Phương thức tìm kiếm người dùng theo email
     public function getUserByEmail($email)
     {
-        $sql = "SELECT * FROM " . $this->getTable() . " WHERE email = :email";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute([':email' => $email]);
-        return $stmt->fetch(PDO::FETCH_ASSOC); // Trả về người dùng tìm thấy
-
+        try {
+            $sql = "SELECT * FROM " . $this->getTable() . " WHERE email = :email";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([':email' => $email]);
+            return $stmt->fetch(PDO::FETCH_ASSOC); // Trả về người dùng tìm thấy
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return null;
+        }
     }
 
 
     // Tìm kiếm người dùng phân trang
     public function searchUsers($keyword, $offset, $limit)
     {
-        $sql = "SELECT * FROM users WHERE name LIKE :keyword LIMIT :offset, :limit";
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':keyword', '%' . $keyword . '%', PDO::PARAM_STR);
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $sql = "SELECT * FROM users WHERE name LIKE :keyword LIMIT :offset, :limit";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':keyword', '%' . $keyword . '%', PDO::PARAM_STR);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return [];
+        }
     }
 
 
     public function getFriendship($user_id)
     {
         $sql = "
-        SELECT u.id, u.name, u.email, u.status, f.status AS friendship_status
+        SELECT media.url, u.id, u.name, u.email, u.status, f.status AS friendship_status
         FROM friendships f
         JOIN users u ON (f.friend_id = u.id OR f.user_id = u.id) 
+        LEFT JOIN media ON media.user_id = f.user_id AND media.is_avatar = 1
         WHERE (f.user_id = :user_id OR f.friend_id = :user_id) 
           AND u.id != :user_id
           AND f.status = 'accepted'
@@ -192,48 +202,59 @@ class UserModel extends BaseModel
         return 'users';
     }
 
-    public function updateUserInfo1($user_id, $name, $age, $gender, $phone)
-    {
+    public function updateUserInfo1($user_id, $name, $age, $gender, $phone) {
         // Cập nhật thông tin trong bảng users
         $sqlUpdateUser = "
             UPDATE users
             SET name = :name
             WHERE id = :user_id
         ";
-
+    
         $stmtUser = $this->conn->prepare($sqlUpdateUser);
         $stmtUser->bindParam(':name', $name);
         $stmtUser->bindParam(':user_id', $user_id);
         $stmtUser->execute();
-
+    
         // Cập nhật thông tin trong bảng user_info
         $sqlUpdateUserInfo = "
             UPDATE user_info
             SET age = :age, gender = :gender, phone = :phone
             WHERE user_id = :user_id
         ";
-
+    
         $stmtUserInfo = $this->conn->prepare($sqlUpdateUserInfo);
         $stmtUserInfo->bindParam(':age', $age);
         $stmtUserInfo->bindParam(':gender', $gender);
         $stmtUserInfo->bindParam(':phone', $phone);
         $stmtUserInfo->bindParam(':user_id', $user_id);
-
+    
         return $stmtUserInfo->execute(); // Trả về kết quả của lần cập nhật thông tin người dùng
     }
 
-    public function userActive($id)
+    //SELECT * FROM `media INNER JOIN users ON users.id = media.user_id WHERE user_id = 4 AND is_avatar = 1 LIMIT 1 LAY AVATAR
+     public function GetAvatarUserByMedia($id)
     {
-        // Tạo chuỗi câu lệnh SQL
-        $sql = "UPDATE " . $this->getTable() . " SET status = 1 WHERE id = :id";
-
-        // Chuẩn bị câu lệnh
+        $sql =   "SELECT media.url FROM users LEFT JOIN media ON media.user_id = users.id AND media.is_avatar = 1 WHERE users.id = :id";
         $stmt = $this->conn->prepare($sql);
+        $stmt->execute([':id' => $id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function updatePassword($userId, $oldPassword, $newPassword) {
+        $query = "SELECT password FROM users WHERE id = :user_id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $userId);
+        $stmt->execute();
+        $storedPassword = $stmt->fetchColumn();
 
-        // Liên kết tham số
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-
-        // Thực thi câu lệnh
-        return $stmt->execute(); // Trả về true nếu thực thi thành công, ngược lại false
+        if ($this->verifyPassword($oldPassword, $storedPassword)) {
+            $hashedNewPassword = $this->hashPasswordWithBase64($newPassword);
+            $updateQuery = "UPDATE users SET password = :new_password WHERE id = :user_id";
+            $updateStmt = $this->conn->prepare($updateQuery);
+            $updateStmt->bindParam(':new_password', $hashedNewPassword);
+            $updateStmt->bindParam(':user_id', $userId);
+            return $updateStmt->execute();
+        } else {
+            return false; 
+        }
     }
 }
