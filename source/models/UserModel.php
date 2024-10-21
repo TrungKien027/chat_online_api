@@ -180,9 +180,10 @@ class UserModel extends BaseModel
     public function getFriendship($user_id)
     {
         $sql = "
-        SELECT u.id, u.name, u.email, u.status, f.status AS friendship_status
+        SELECT media.url, u.id, u.name, u.email, u.status, f.status AS friendship_status
         FROM friendships f
         JOIN users u ON (f.friend_id = u.id OR f.user_id = u.id) 
+        LEFT JOIN media ON media.user_id = f.user_id AND media.is_avatar = 1
         WHERE (f.user_id = :user_id OR f.friend_id = :user_id) 
           AND u.id != :user_id
           AND f.status = 'accepted'
@@ -229,5 +230,31 @@ class UserModel extends BaseModel
     
         return $stmtUserInfo->execute(); // Trả về kết quả của lần cập nhật thông tin người dùng
     }
-    
+
+    //SELECT * FROM `media INNER JOIN users ON users.id = media.user_id WHERE user_id = 4 AND is_avatar = 1 LIMIT 1 LAY AVATAR
+     public function GetAvatarUserByMedia($id)
+    {
+        $sql =   "SELECT media.url FROM users LEFT JOIN media ON media.user_id = users.id AND media.is_avatar = 1 WHERE users.id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([':id' => $id]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function updatePassword($userId, $oldPassword, $newPassword) {
+        $query = "SELECT password FROM users WHERE id = :user_id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $userId);
+        $stmt->execute();
+        $storedPassword = $stmt->fetchColumn();
+
+        if ($this->verifyPassword($oldPassword, $storedPassword)) {
+            $hashedNewPassword = $this->hashPasswordWithBase64($newPassword);
+            $updateQuery = "UPDATE users SET password = :new_password WHERE id = :user_id";
+            $updateStmt = $this->conn->prepare($updateQuery);
+            $updateStmt->bindParam(':new_password', $hashedNewPassword);
+            $updateStmt->bindParam(':user_id', $userId);
+            return $updateStmt->execute();
+        } else {
+            return false; 
+        }
+    }
 }
