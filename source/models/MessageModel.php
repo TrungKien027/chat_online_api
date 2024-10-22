@@ -45,11 +45,16 @@ class MessageModel extends BaseModel
     // Lấy tất cả tin nhắn trong một phòng
     public function getMessagesByRoomId($roomId)
     {
-        $sql = "SELECT * FROM " . $this->getTable() . " WHERE room_id = :room_id ORDER BY created_at ASC";
+        // $sql = "SELECT * FROM " . $this->getTable() . " WHERE room_id = :room_id ORDER BY created_at ASC";
+        $sql = "SELECT m.*, u.name AS user_name, u.status AS user_status 
+        FROM " . $this->getTable() . " AS m
+        JOIN users AS u ON m.user_id = u.id
+        WHERE m.room_id = :room_id
+        ORDER BY m.created_at ASC
+    ";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':room_id', $roomId);
         $stmt->execute();
-
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

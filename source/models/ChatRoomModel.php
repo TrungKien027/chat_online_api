@@ -41,15 +41,16 @@ class ChatRoomModel extends BaseModel
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    // Lấy tất cả các phòng chat của một người dùng
     public function getChatRoomsByUserId($userId)
     {
         $sql = "SELECT * FROM " . $this->getTable() . " 
-                WHERE user_id_1 = :user_id OR user_id_2 = :user_id";
+                WHERE user_id_1 = :user_id";
         $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':user_id', $userId);
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Ràng buộc tham số và thực thi
+        $stmt->execute([':user_id' => $userId]);
+        // Lấy tất cả các phòng chat
+        $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Trả về danh sách phòng chat nếu có
+        return $rooms ?: []; // Nếu $rooms có giá trị thì trả về, ngược lại trả về mảng rỗng
     }
 }
