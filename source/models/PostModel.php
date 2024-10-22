@@ -36,7 +36,7 @@ class Post extends BaseModel
     public function getPaginatedUsers($page, $limit)
     {
         $offset = ($page - 1) * $limit; // Tính toán offset dựa trên số trang và giới hạn
-        $stmt = $this->conn->prepare("SELECT * FROM " . $this->getTable() . " LIMIT :limit OFFSET :offset");
+        $stmt = $this->conn->prepare("SELECT * FROM " . $this->getTable() . " ORDER BY RAND() LIMIT :limit OFFSET :offset");
         $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
         $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
@@ -71,5 +71,51 @@ class Post extends BaseModel
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([':id' => $userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function getPaginatedPosts($lastPostId, $limit)
+    {
+        $limit = max(1, (int)$limit);
+        $lastPostId = (int)$lastPostId; // ID bài viết cuối cùng
+        try {
+            $stmt = $this->conn->prepare(
+                "SELECT 
+    p.*,                      
+    u.name AS name,               
+    u.email AS email,               
+    m.url AS media_url,         
+    m.media_type,               
+    COUNT(DISTINCT pc.id) AS total_comments,  -- Đếm số lượng bình luận
+    COUNT(DISTINCT pl.id) AS total_likes,      -- Đếm số lượng lượt thích
+    COUNT(DISTINCT ps.id) AS total_shares       -- Đếm số lượng chia sẻ
+FROM 
+    posts p                   
+JOIN 
+    users u ON p.user_id = u.id   
+LEFT JOIN 
+    media m ON p.id = m.post_id  
+LEFT JOIN 
+    post_comments pc ON p.id = pc.post_id     -- LEFT JOIN với bảng bình luận
+LEFT JOIN 
+    post_like pl ON p.id = pl.post_id         -- LEFT JOIN với bảng lượt thích
+LEFT JOIN 
+    post_share ps ON p.id = ps.post_id        -- LEFT JOIN với bảng chia sẻ
+WHERE 
+    p.id > :lastPostId            
+GROUP BY 
+    p.id                              -- Nhóm theo ID bài viết để tổng hợp
+ORDER BY 
+    p.id ASC                       
+LIMIT 
+    :limit                        
+                      
+"
+            );
+            $stmt->bindParam(':lastPostId', $lastPostId, PDO::PARAM_INT);
+            $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            return ['error' => $e->getMessage()];
+        }
     }
 }
