@@ -84,9 +84,9 @@ class Post extends BaseModel
     u.email AS email,               
     m.url AS media_url,         
     m.media_type,               
-    COUNT(DISTINCT pc.id) AS total_comments,  -- Đếm số lượng bình luận
-    COUNT(DISTINCT pl.id) AS total_likes,      -- Đếm số lượng lượt thích
-    COUNT(DISTINCT ps.id) AS total_shares       -- Đếm số lượng chia sẻ
+    COUNT(DISTINCT pc.id) AS total_comments,  
+    COUNT(DISTINCT pl.id) AS total_likes,      
+    COUNT(DISTINCT ps.id) AS total_shares       
 FROM 
     posts p                   
 JOIN 
@@ -94,15 +94,15 @@ JOIN
 LEFT JOIN 
     media m ON p.id = m.post_id  
 LEFT JOIN 
-    post_comments pc ON p.id = pc.post_id     -- LEFT JOIN với bảng bình luận
+    post_comments pc ON p.id = pc.post_id   
 LEFT JOIN 
-    post_like pl ON p.id = pl.post_id         -- LEFT JOIN với bảng lượt thích
+    post_like pl ON p.id = pl.post_id       
 LEFT JOIN 
-    post_share ps ON p.id = ps.post_id        -- LEFT JOIN với bảng chia sẻ
+    post_share ps ON p.id = ps.post_id      
 WHERE 
     p.id > :lastPostId            
 GROUP BY 
-    p.id                              -- Nhóm theo ID bài viết để tổng hợp
+    p.id                             
 ORDER BY 
     p.id ASC                       
 LIMIT 
