@@ -273,4 +273,5 @@ class UserModel extends BaseModel
         // Thực thi câu lệnh
         return $stmt->execute(); // Trả về true nếu thực thi thành công, ngược lại false
     }
+     
 }
