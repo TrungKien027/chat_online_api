@@ -40,24 +40,27 @@ class ChatRoomModel extends BaseModel
                 WHERE 
                     (chat_rooms.user_id_1 = :user_id_1 AND chat_rooms.user_id_2 = :user_id_2) 
                     OR (chat_rooms.user_id_1 = :user_id_2 AND chat_rooms.user_id_2 = :user_id_1)";
-        
+
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':user_id_1', $userId1);
         $stmt->bindParam(':user_id_2', $userId2);
         $stmt->execute();
-    
+
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-    
+
     public function getChatRoomsByUserId($userId)
     {
         $sql = "SELECT 
                 chat_rooms.*,
-                media.url AS user2_avatar
+                media.url AS user2_avatar,
+                users.*
             FROM 
                 chat_rooms
             LEFT JOIN 
                 media ON chat_rooms.user_id_2 = media.user_id AND media.is_avatar = 1
+             LEFT JOIN 
+                users ON users.id = user_id_2
             WHERE 
                 chat_rooms.user_id_1 = :user_id OR chat_rooms.user_id_2 = :user_id";
 
@@ -72,22 +75,22 @@ class ChatRoomModel extends BaseModel
         return $rooms ?: [];
     }
     public function getChatRoomById($roomId)
-{
-    $sql = "SELECT 
+    {
+        $sql = "SELECT 
                 chat_rooms.*, 
                 media.url AS avatar_user_2 
             FROM 
                 " . $this->getTable() . " AS chat_rooms
             LEFT JOIN 
                 media ON chat_rooms.user_id_2 = media.user_id AND media.is_avatar = 1
+                
             WHERE 
                 chat_rooms.id = :room_id";
 
-    $stmt = $this->conn->prepare($sql);
-    $stmt->bindParam(':room_id', $roomId);
-    $stmt->execute();
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':room_id', $roomId);
+        $stmt->execute();
 
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-}
-
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 }
