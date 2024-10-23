@@ -1,5 +1,5 @@
 <?php
-
+require_once 'BaseModel.php'; // Đảm bảo đã bao gồm file BaseModel
 class ChatRoomModel extends BaseModel
 {
     protected function getTable()
@@ -30,27 +30,64 @@ class ChatRoomModel extends BaseModel
     // Lấy phòng chat giữa hai người dùng
     public function getChatRoom($userId1, $userId2)
     {
-        $sql = "SELECT * FROM " . $this->getTable() . " 
-                WHERE (user_id_1 = :user_id_1 AND user_id_2 = :user_id_2) 
-                OR (user_id_1 = :user_id_2 AND user_id_2 = :user_id_1)";
+        $sql = "SELECT 
+                    chat_rooms.*, 
+                    media.url AS avatar_user_2 
+                FROM 
+                    " . $this->getTable() . " AS chat_rooms
+                LEFT JOIN 
+                    media ON chat_rooms.user_id_2 = media.user_id AND media.is_avatar = 1
+                WHERE 
+                    (chat_rooms.user_id_1 = :user_id_1 AND chat_rooms.user_id_2 = :user_id_2) 
+                    OR (chat_rooms.user_id_1 = :user_id_2 AND chat_rooms.user_id_2 = :user_id_1)";
+        
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':user_id_1', $userId1);
         $stmt->bindParam(':user_id_2', $userId2);
         $stmt->execute();
-
+    
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-
+    
     public function getChatRoomsByUserId($userId)
     {
-        $sql = "SELECT * FROM " . $this->getTable() . " 
-                WHERE user_id_1 = :user_id";
+        $sql = "SELECT 
+                chat_rooms.*,
+                media.url AS user2_avatar
+            FROM 
+                chat_rooms
+            LEFT JOIN 
+                media ON chat_rooms.user_id_2 = media.user_id AND media.is_avatar = 1
+            WHERE 
+                chat_rooms.user_id_1 = :user_id OR chat_rooms.user_id_2 = :user_id";
+
         $stmt = $this->conn->prepare($sql);
         // Ràng buộc tham số và thực thi
         $stmt->execute([':user_id' => $userId]);
-        // Lấy tất cả các phòng chat
+
+        // Lấy tất cả các phòng chat cùng với avatar của user_id_2
         $rooms = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        // Trả về danh sách phòng chat nếu có
-        return $rooms ?: []; // Nếu $rooms có giá trị thì trả về, ngược lại trả về mảng rỗng
+
+        // Trả về danh sách phòng chat nếu có, nếu không trả về mảng rỗng
+        return $rooms ?: [];
     }
+    public function getChatRoomById($roomId)
+{
+    $sql = "SELECT 
+                chat_rooms.*, 
+                media.url AS avatar_user_2 
+            FROM 
+                " . $this->getTable() . " AS chat_rooms
+            LEFT JOIN 
+                media ON chat_rooms.user_id_2 = media.user_id AND media.is_avatar = 1
+            WHERE 
+                chat_rooms.id = :room_id";
+
+    $stmt = $this->conn->prepare($sql);
+    $stmt->bindParam(':room_id', $roomId);
+    $stmt->execute();
+
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 }
