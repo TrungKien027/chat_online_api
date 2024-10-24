@@ -18,7 +18,6 @@ class MessageModel extends BaseModel
     public function createMessage($roomId, $userId, $content)
     {
 
-
         // Chuẩn bị câu truy vấn SQL
         $sql = "INSERT INTO " . $this->getTable() . " (room_id, user_id, content, created_at) 
                 VALUES (:room_id, :user_id, :content, NOW())";
