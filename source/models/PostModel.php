@@ -85,4 +85,58 @@ UNION
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+
+    public function getIdByUserId($userId)
+    {
+        $sql = "SELECT posts.id, COUNT(user_like_id) AS total_likes FROM posts INNER JOIN post_like ON post_like.post_id = posts.id WHERE posts.id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute([':id' => $userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function getPaginatedPosts($lastPostId, $limit)
+    {
+        $limit = max(1, (int)$limit);
+        $lastPostId = (int)$lastPostId; // ID bài viết cuối cùng
+        try {
+            $stmt = $this->conn->prepare(
+                "SELECT 
+    p.*,                      
+    u.name AS name,               
+    u.email AS email,               
+    m.url AS media_url,         
+    m.media_type,               
+    COUNT(DISTINCT pc.id) AS total_comments,  
+    COUNT(DISTINCT pl.id) AS total_likes,      
+    COUNT(DISTINCT ps.id) AS total_shares       
+FROM 
+    posts p                   
+JOIN 
+    users u ON p.user_id = u.id   
+LEFT JOIN 
+    media m ON p.id = m.post_id  
+LEFT JOIN 
+    post_comments pc ON p.id = pc.post_id   
+LEFT JOIN 
+    post_like pl ON p.id = pl.post_id       
+LEFT JOIN 
+    post_share ps ON p.id = ps.post_id      
+WHERE 
+    p.id > :lastPostId            
+GROUP BY 
+    p.id                             
+ORDER BY 
+    p.id ASC                       
+LIMIT 
+    :limit                        
+                      
+"
+            );
+            $stmt->bindParam(':lastPostId', $lastPostId, PDO::PARAM_INT);
+            $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            return ['error' => $e->getMessage()];
+        }
+    }
 }
