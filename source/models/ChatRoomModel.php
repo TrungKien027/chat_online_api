@@ -52,18 +52,17 @@ class ChatRoomModel extends BaseModel
     public function getChatRoomsByUserId($userId)
     {
         $sql = "SELECT 
-                chat_rooms.*,
-                media.url AS user2_avatar,
-                users.*
-            FROM 
-                chat_rooms
-            LEFT JOIN 
-                media ON chat_rooms.user_id_2 = media.user_id AND media.is_avatar = 1
-             LEFT JOIN 
-                users ON users.id = user_id_2
-            WHERE 
-                chat_rooms.user_id_1 = :user_id OR chat_rooms.user_id_2 = :user_id";
-
+            chat_rooms.*,
+            media.url AS user2_avatar,
+            users.name
+        FROM 
+            chat_rooms
+        LEFT JOIN 
+            media ON chat_rooms.user_id_2 = media.user_id AND media.is_avatar = 1
+        LEFT JOIN 
+            users ON chat_rooms.user_id_2 = users.id
+        WHERE 
+            chat_rooms.user_id_1 = :user_id OR chat_rooms.user_id_2 = :user_id";
         $stmt = $this->conn->prepare($sql);
         // Ràng buộc tham số và thực thi
         $stmt->execute([':user_id' => $userId]);
