@@ -176,17 +176,17 @@ class UserModel extends BaseModel
         }
     }
 
-
     public function getFriendship($user_id)
     {
         $sql = "
         SELECT media.url, u.id, u.name, u.email, u.status, f.status AS friendship_status
-        FROM friendships f
-        JOIN users u ON (f.friend_id = u.id OR f.user_id = u.id) 
-        LEFT JOIN media ON media.user_id = f.user_id AND media.is_avatar = 1
-        WHERE (f.user_id = :user_id OR f.friend_id = :user_id) 
-          AND u.id != :user_id
-          AND f.status = 'accepted'
+FROM friendships f
+JOIN users u ON (f.friend_id = u.id OR f.user_id = u.id)
+LEFT JOIN media ON media.user_id = u.id AND media.is_avatar = 1 
+WHERE 
+    (f.user_id = :user_id OR f.friend_id = :user_id)
+    AND u.id != :user_id
+    AND f.status = 'accepted'
     ";
 
         $stmt = $this->conn->prepare($sql);
@@ -195,6 +195,26 @@ class UserModel extends BaseModel
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    public function make_friend($user_id)
+    {
+        $sql = "
+        SELECT media.url, f.friend_id , f.user_id as idf ,u.id, u.name, u.email, u.status, f.status AS friendship_status
+FROM friendships f
+LEFT JOIN users u ON (f.friend_id = u.id OR f.user_id = u.id)
+LEFT JOIN media ON media.user_id = u.id AND media.is_avatar = 1  
+WHERE 
+    (f.user_id = :user_id OR f.friend_id = :user_id)
+    AND u.id != :user_id
+    AND f.status = 'pending'
+    ";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
 
     // Trả về tên bảng cho model này
     protected function getTable()
@@ -235,7 +255,7 @@ class UserModel extends BaseModel
     //SELECT * FROM `media INNER JOIN users ON users.id = media.user_id WHERE user_id = 4 AND is_avatar = 1 LIMIT 1 LAY AVATAR
     public function GetAvatarUserByMedia($id)
     {
-        $sql =   "SELECT media.url FROM users LEFT JOIN media ON media.user_id = users.id AND media.is_avatar = 1 WHERE users.id = :id";
+        $sql = "SELECT media.url FROM users LEFT JOIN media ON media.user_id = users.id AND media.is_avatar = 1 WHERE users.id = :id";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([':id' => $id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -273,5 +293,23 @@ class UserModel extends BaseModel
         // Thực thi câu lệnh
         return $stmt->execute(); // Trả về true nếu thực thi thành công, ngược lại false
     }
-     
+    public function userUnActive($id)
+    {
+        // Tạo chuỗi câu lệnh SQL
+        $sql = "UPDATE users SET status = 0 WHERE id = :id";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        return $stmt->execute(); // Trả về true nếu thực thi thành công, ngược lại false
+    }
+
+    public function acceptFriendRequest($userId, $friendId) {
+        $query = "UPDATE friendships SET status = 'accepted' 
+                  WHERE (user_id = :user_id AND friend_id = :friend_id) 
+                     OR (user_id = :friend_id AND friend_id = :user_id)
+                     AND status = 'pending'";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $userId);
+        $stmt->bindParam(':friend_id', $friendId);
+        return $stmt->execute();
+    }
 }
