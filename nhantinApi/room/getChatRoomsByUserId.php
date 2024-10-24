@@ -18,7 +18,7 @@ if (isset($data['user_id'])) {
     $userId = trim($data['user_id'], '"');
     // Lấy tất cả các phòng chat của người dùng
     $rooms = $roomModel->getChatRoomsByUserId($userId);
-
+   
     // Kiểm tra nếu có phòng chat
     if ($rooms) {
         // Trả về danh sách phòng chat
