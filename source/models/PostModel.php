@@ -84,5 +84,23 @@ UNION
         $stmt->execute([':id' => $userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-
+    public function searchPost($keyword, $offset, $limit)
+    {
+        try {
+            $sql = "SELECT  avatar_media.url as urluser, avatar_post.url as urlpost,users.name, posts.content FROM posts  
+JOIN users ON posts.user_id = users.id 
+LEFT JOIN media AS avatar_media ON avatar_media.user_id = users.id AND avatar_media.is_avatar = 1 
+LEFT JOIN media AS avatar_post ON avatar_post.post_id = posts.id AND avatar_post.is_avatar = 0
+WHERE content LIKE :keyword LIMIT :offset, :limit ";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':keyword', '%' . $keyword . '%', PDO::PARAM_STR);
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return [];
+        }
+    }
 }
