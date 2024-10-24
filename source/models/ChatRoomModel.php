@@ -54,7 +54,7 @@ class ChatRoomModel extends BaseModel
         $sql = "SELECT 
             chat_rooms.*,
             media.url AS user2_avatar,
-            users.name
+            users.name, users.status
         FROM 
             chat_rooms
         LEFT JOIN 
@@ -82,7 +82,6 @@ class ChatRoomModel extends BaseModel
                 " . $this->getTable() . " AS chat_rooms
             LEFT JOIN 
                 media ON chat_rooms.user_id_2 = media.user_id AND media.is_avatar = 1
-                
             WHERE 
                 chat_rooms.id = :room_id";
 

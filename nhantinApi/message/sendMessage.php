@@ -6,9 +6,11 @@ header('Content-Type: application/json'); // Đặt loại nội dung cho phản
 
 require_once '../../source/models/MessageModel.php'; // Đảm bảo đã bao gồm MessageModel
 require_once '../../source/models/UserModel.php'; // Đảm bảo đã bao gồm MessageModel
+require_once '../../source/models/TokenModel.php'; // Đảm bảo đã bao gồm MessageModel
 
 $messModel = new MessageModel();
 $userModel = new UserModel();
+$tokenModel = new TokenModel();
 
 // Định nghĩa route cho API tạo tin nhắn
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -21,7 +23,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $roomId = isset($data['room_id']) ? htmlspecialchars($data['room_id'], ENT_QUOTES, 'UTF-8') : null;
     $userId = isset($data['user_id']) ? htmlspecialchars($data['user_id'], ENT_QUOTES, 'UTF-8') : null;
     $content = isset($data['content']) ? htmlspecialchars($data['content'], ENT_QUOTES, 'UTF-8') : null;
+    $authToken = isset($data['authToken']) ? htmlspecialchars($data['authToken'], ENT_QUOTES, 'UTF-8') : null;
     checkUserStatus($userId);
+
+    if (checkToken($authToken) != true) {
+        echo json_encode(['success' => false, 'error' => 'Xác thực người dùng thất bại. Vui lòng đăng nhập lại.']);
+        exit();
+    }
+
     // Kiểm tra dữ liệu đầu vào
     if (is_null($roomId) || is_null($userId) || is_null($content)) {
         http_response_code(400); // Bad Request
@@ -75,5 +84,18 @@ function checkUserStatus($userId)
         http_response_code(410); // Gone
         echo json_encode(['success' => false, 'error' => 'Tài khoản này không còn hoạt động!']);
         exit();
+    }
+}
+function checkToken($token)
+{
+    global $tokenModel; // Để sử dụng $messModel trong hàm này
+    if ($token) {
+        // Gọi hàm verifyToken để kiểm tra token
+        $isValid = $tokenModel->verifyToken($token); // Đúng tên biến
+        if ($isValid) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
