@@ -163,7 +163,7 @@ class UserModel extends BaseModel
     public function searchUsers($keyword, $offset, $limit)
     {
         try {
-            $sql = "SELECT * FROM users WHERE name LIKE :keyword LIMIT :offset, :limit";
+            $sql = "SELECT *, users.id as iduser FROM users LEFT JOIN media ON media.user_id = users.id AND media.is_avatar = 1 WHERE name LIKE :keyword LIMIT :offset, :limit";
             $stmt = $this->conn->prepare($sql);
             $stmt->bindValue(':keyword', '%' . $keyword . '%', PDO::PARAM_STR);
             $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -214,7 +214,7 @@ WHERE
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
+
 
     // Trả về tên bảng cho model này
     protected function getTable()
@@ -302,8 +302,20 @@ WHERE
         return $stmt->execute(); // Trả về true nếu thực thi thành công, ngược lại false
     }
 
-    public function acceptFriendRequest($userId, $friendId) {
+    public function acceptFriendRequest($userId, $friendId)
+    {
         $query = "UPDATE friendships SET status = 'accepted' 
+                  WHERE (user_id = :user_id AND friend_id = :friend_id) 
+                     OR (user_id = :friend_id AND friend_id = :user_id)
+                     AND status = 'pending'";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $userId);
+        $stmt->bindParam(':friend_id', $friendId);
+        return $stmt->execute();
+    }
+    public function declineFriendRequest($userId, $friendId)
+    {
+        $query = "UPDATE friendships SET status = 'declined' 
                   WHERE (user_id = :user_id AND friend_id = :friend_id) 
                      OR (user_id = :friend_id AND friend_id = :user_id)
                      AND status = 'pending'";
