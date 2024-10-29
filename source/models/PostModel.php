@@ -49,7 +49,7 @@ class Post extends BaseModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     //POst id 
-    public function sByUserId($userId)
+    public function getPostsByUserId($userId)
     {
         // $sql = "SELECT * FROM `posts` INNER JOIN users ON users.id = posts.user_id   WHERE user_id = :id";
         $sql = "SELECT 
@@ -96,9 +96,9 @@ WHERE
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     public function searchPost($keyword, $offset, $limit, $currentUserId, $postFrom, $selectedOrder)
-{
-    try {
-        $sql = "SELECT 
+    {
+        try {
+            $sql = "SELECT 
             avatar_media.url AS urluser, 
             avatar_post.url AS urlpost, 
             users.name, 
@@ -117,49 +117,49 @@ WHERE
         WHERE (posts.content LIKE :keyword 
                OR MATCH(posts.content) AGAINST (:keyword IN BOOLEAN MODE))";
 
-        // Thêm các điều kiện lọc theo `postFrom`
-        if ($postFrom == 1) {
-            // Lọc bài viết từ bạn bè
-            $sql .= " AND posts.user_id IN (SELECT friend_id FROM friendships WHERE user_id = :currentUserId AND status = 'accepted') ";
-        } elseif ($postFrom == 2) {
-            // Lọc bài viết từ người khác, không bao gồm bài viết của chính user
-            $sql .= " AND posts.user_id NOT IN (
+            // Thêm các điều kiện lọc theo `postFrom`
+            if ($postFrom == 1) {
+                // Lọc bài viết từ bạn bè
+                $sql .= " AND posts.user_id IN (SELECT friend_id FROM friendships WHERE user_id = :currentUserId AND status = 'accepted') ";
+            } elseif ($postFrom == 2) {
+                // Lọc bài viết từ người khác, không bao gồm bài viết của chính user
+                $sql .= " AND posts.user_id NOT IN (
                 SELECT friend_id FROM friendships 
                 WHERE user_id = :currentUserId AND status = 'accepted'
             ) 
             AND posts.user_id != :currentUserId ";
+            }
+
+            $sql .= " GROUP BY posts.id, avatar_media.url, avatar_post.url, users.name, posts.content, posts.created_at ";
+
+            // Thêm điều kiện sắp xếp dựa vào `selectedOrder`
+            if ($selectedOrder == 1) {
+                $sql .= " ORDER BY posts.created_at DESC"; // Sắp xếp theo thời gian mới nhất
+            } elseif ($selectedOrder == 2) {
+                $sql .= " ORDER BY posts.created_at ASC"; // Sắp xếp theo thời gian cũ nhất
+            }
+
+            $sql .= " LIMIT :offset, :limit";
+
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindValue(':keyword', '%' . $keyword . '%', PDO::PARAM_STR);
+
+            if ($postFrom == 1 || $postFrom == 2) {
+                $stmt->bindValue(':currentUserId', $currentUserId, PDO::PARAM_INT);
+            }
+
+            $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            echo "Error: " . $e->getMessage();
+            return [];
         }
-
-        $sql .= " GROUP BY posts.id, avatar_media.url, avatar_post.url, users.name, posts.content, posts.created_at ";
-        
-        // Thêm điều kiện sắp xếp dựa vào `selectedOrder`
-        if ($selectedOrder == 1) {
-            $sql .= " ORDER BY posts.created_at DESC"; // Sắp xếp theo thời gian mới nhất
-        } elseif ($selectedOrder == 2) {
-            $sql .= " ORDER BY posts.created_at ASC"; // Sắp xếp theo thời gian cũ nhất
-        }
-
-        $sql .= " LIMIT :offset, :limit";
-
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':keyword', '%' . $keyword . '%', PDO::PARAM_STR);
-
-        if ($postFrom == 1 || $postFrom == 2) {
-            $stmt->bindValue(':currentUserId', $currentUserId, PDO::PARAM_INT);
-        }
-
-        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        echo "Error: " . $e->getMessage();
-        return [];
     }
-}
 
-   
+
     public function getPostsByUserIdInfo($userId)
     {
         // $sql = "SELECT * FROM `posts` INNER JOIN users ON users.id = posts.user_id   WHERE user_id = :id";
