@@ -58,7 +58,7 @@ class Post extends BaseModel
     posts.created_at AS post_created_at,
     users.name , 
     'original' AS post_type,
-    media.url   -- Lấy URL của ảnh bài viết
+    media.url   
 FROM 
     posts 
 INNER JOIN 
@@ -66,7 +66,7 @@ INNER JOIN
 LEFT JOIN 
     media ON media.post_id = posts.id AND media.is_avatar = 0  -- Lấy ảnh của bài viết
 WHERE 
-    posts.user_id = :id  -- Thay thế :id bằng user_id bạn muốn tìm
+    posts.user_id = :id 
 
 UNION ALL
 
