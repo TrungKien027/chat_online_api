@@ -10,7 +10,7 @@ require_once '../../source/models/UserModel.php'; // Đảm bảo đã bao gồm
 $database = new Database();
 $userModel = new UserModel();
 
-$keyword = isset($_GET['keyword']) ? $_GET['keyword'] : '';
+$keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : ''; // Loại bỏ khoảng trắng thừa
 $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0; // Mặc định là 0
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;   // Mặc định là 10
 

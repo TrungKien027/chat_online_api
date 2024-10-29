@@ -198,13 +198,12 @@ WHERE
     public function make_friend($user_id)
     {
         $sql = "
-        SELECT media.url, f.friend_id , f.user_id as idf ,u.id, u.name, u.email, u.status, f.status AS friendship_status
+        SELECT media.url, f.friend_id, f.user_id AS idf, u.id, u.name, u.email, u.status, f.status AS friendship_status
 FROM friendships f
-LEFT JOIN users u ON (f.friend_id = u.id OR f.user_id = u.id)
+LEFT JOIN users u ON f.friend_id = u.id
 LEFT JOIN media ON media.user_id = u.id AND media.is_avatar = 1  
 WHERE 
-    (f.user_id = :user_id OR f.friend_id = :user_id)
-    AND u.id != :user_id
+    f.user_id = :user_id
     AND f.status = 'pending'
     ";
 
