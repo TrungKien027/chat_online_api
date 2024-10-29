@@ -64,7 +64,7 @@ FROM
 INNER JOIN 
     users ON users.id = posts.user_id 
 LEFT JOIN 
-    media ON media.post_id = posts.id AND media.is_avatar = 0  -- Lấy ảnh của bài viết
+    media ON media.post_id = posts.id AND media.is_avatar = 0
 WHERE 
     posts.user_id = :id 
 
@@ -76,7 +76,7 @@ SELECT
     post_share.created_at AS post_created_at,
     users.name AS user_name, 
     'shared' AS post_type,
-    media.url AS post_image_url  -- Lấy URL của ảnh bài viết được chia sẻ
+    media.url AS post_image_url 
 FROM 
     post_share 
 INNER JOIN 
@@ -84,7 +84,7 @@ INNER JOIN
 INNER JOIN 
     users ON users.id = posts.user_id 
 LEFT JOIN 
-    media ON media.post_id = posts.id AND media.is_avatar = 0  -- Lấy ảnh của bài viết
+    media ON media.post_id = posts.id AND media.is_avatar = 0  
 WHERE 
     post_share.user_share_id = :id;
 ;  -- Thay thế 4 bằng user_id bạn muốn tìm
