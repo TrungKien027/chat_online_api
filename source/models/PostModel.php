@@ -49,7 +49,7 @@ class Post extends BaseModel
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     //POst id 
-    public function getPostsByUserId($userId)
+    public function sByUserId($userId)
     {
         // $sql = "SELECT * FROM `posts` INNER JOIN users ON users.id = posts.user_id   WHERE user_id = :id";
         $sql = "(SELECT posts.id, posts.content, users.name, posts.created_at, media.url,
