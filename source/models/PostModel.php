@@ -52,41 +52,43 @@ class Post extends BaseModel
     public function getPostsByUserId($userId)
     {
         // $sql = "SELECT * FROM `posts` INNER JOIN users ON users.id = posts.user_id   WHERE user_id = :id";
-        $sql = "(SELECT posts.id, 
-        posts.content, 
-        users.name, 
-        posts.created_at, 
-        media.url,
-        COUNT(DISTINCT post_like.user_like_id) AS like_count, 
-        COUNT(DISTINCT post_comments.user_cmt_id) AS cmt_count,
-        COUNT(post_share.user_share_id) AS share_count  -- Tính tổng số lần share
- FROM posts
- INNER JOIN users ON users.id = posts.user_id
- LEFT JOIN post_like ON post_like.post_id = posts.id
- LEFT JOIN post_comments ON post_comments.post_id = posts.id
- LEFT JOIN post_share ON post_share.post_id = posts.id
- LEFT JOIN media ON media.post_id = posts.id AND media.is_avatar = 0
- WHERE posts.user_id =  :id
- GROUP BY posts.id)
+        $sql = "SELECT 
+    posts.id AS post_id, 
+    posts.content AS post_content, 
+    posts.created_at AS post_created_at,
+    users.name , 
+    'original' AS post_type,
+    media.url   -- Lấy URL của ảnh bài viết
+FROM 
+    posts 
+INNER JOIN 
+    users ON users.id = posts.user_id 
+LEFT JOIN 
+    media ON media.post_id = posts.id AND media.is_avatar = 0  -- Lấy ảnh của bài viết
+WHERE 
+    posts.user_id = :id  -- Thay thế :id bằng user_id bạn muốn tìm
 
-UNION
+UNION ALL
 
-(SELECT original_posts.id, 
-        original_posts.content, 
-        original_users.name, 
-        original_posts.created_at, 
-        media.url,
-        COUNT(DISTINCT post_like.user_like_id) AS like_count, 
-        COUNT(DISTINCT post_comments.user_cmt_id) AS cmt_count,
-        COUNT(post_share.user_share_id) AS share_count  -- Tính tổng số lần share
- FROM post_share
- INNER JOIN posts AS original_posts ON post_share.post_id = original_posts.id
- INNER JOIN users AS original_users ON original_users.id = original_posts.user_id
- LEFT JOIN post_like ON post_like.post_id = original_posts.id
- LEFT JOIN post_comments ON post_comments.post_id = original_posts.id
- LEFT JOIN media ON media.post_id = original_posts.id AND media.is_avatar = 0
- WHERE post_share.user_share_id = :id
- GROUP BY original_posts.id);
+SELECT 
+    posts.id AS post_id, 
+    posts.content AS post_content, 
+    post_share.created_at AS post_created_at,
+    users.name AS user_name, 
+    'shared' AS post_type,
+    media.url AS post_image_url  -- Lấy URL của ảnh bài viết được chia sẻ
+FROM 
+    post_share 
+INNER JOIN 
+    posts ON post_share.post_id = posts.id 
+INNER JOIN 
+    users ON users.id = posts.user_id 
+LEFT JOIN 
+    media ON media.post_id = posts.id AND media.is_avatar = 0  -- Lấy ảnh của bài viết
+WHERE 
+    post_share.user_share_id = :id;
+;  -- Thay thế 4 bằng user_id bạn muốn tìm
+
 ";
 
         $stmt = $this->conn->prepare($sql);
@@ -157,64 +159,7 @@ UNION
     }
 }
 
-    // public function searchPost($keyword, $offset, $limit, $currentUserId, $postFrom)
-    // {
-    //     try {
-    //         $sql = "SELECT 
-    //         avatar_media.url AS urluser, 
-    //         avatar_post.url AS urlpost, 
-    //         users.name, 
-    //         posts.content, 
-    //         posts.created_at, 
-    //         COUNT(post_like.post_id) AS like_count, 
-    //         COUNT(post_comments.post_id) AS cmt_count, 
-    //         COUNT(post_share.post_id) AS share_count
-    //     FROM posts 
-    //     JOIN users ON posts.user_id = users.id 
-    //     LEFT JOIN media AS avatar_media ON avatar_media.user_id = users.id AND avatar_media.is_avatar = 1 
-    //     LEFT JOIN media AS avatar_post ON avatar_post.post_id = posts.id AND avatar_post.is_avatar = 0 
-    //     LEFT JOIN post_like ON post_like.post_id = posts.id
-    //     LEFT JOIN post_comments ON post_comments.post_id = posts.id
-    //     LEFT JOIN post_share ON post_share.post_id = posts.id
-    //     WHERE (posts.content LIKE :keyword 
-    //            OR MATCH(posts.content) AGAINST (:keyword IN BOOLEAN MODE))";
-
-    //         // Thêm các điều kiện lọc theo `postFrom`
-    //         if ($postFrom == 1) {
-    //             // Lọc bài viết từ bạn bè
-    //             $sql .= " AND posts.user_id IN (SELECT friend_id FROM friendships WHERE user_id = :currentUserId AND status = 'accepted') ";
-    //         } elseif ($postFrom == 2) {
-    //             // Lọc bài viết từ người khác, không bao gồm bài viết của chính user
-    //             $sql .= " AND posts.user_id NOT IN (
-    //             SELECT friend_id FROM friendships 
-    //             WHERE user_id = :currentUserId AND status = 'accepted'
-    //           ) 
-    //           AND posts.user_id != :currentUserId ";
-    //         } elseif ($postFrom == 3) {
-    //         }
-
-
-    //         $sql .= " GROUP BY posts.id, avatar_media.url, avatar_post.url, users.name, posts.content, posts.created_at ";
-    //         $sql .= " LIMIT :offset, :limit";
-
-    //         $stmt = $this->conn->prepare($sql);
-    //         $stmt->bindValue(':keyword', '%' . $keyword . '%', PDO::PARAM_STR);
-
-    //         // Gán giá trị cho `currentUserId` nếu cần thiết
-    //         if ($postFrom == 1 || $postFrom == 2) {
-    //             $stmt->bindValue(':currentUserId', $currentUserId, PDO::PARAM_INT);
-    //         }
-
-    //         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    //         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    //         $stmt->execute();
-
-    //         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    //     } catch (PDOException $e) {
-    //         echo "Error: " . $e->getMessage();
-    //         return [];
-    //     }
-    // }
+   
     public function getPostsByUserIdInfo($userId)
     {
         // $sql = "SELECT * FROM `posts` INNER JOIN users ON users.id = posts.user_id   WHERE user_id = :id";
