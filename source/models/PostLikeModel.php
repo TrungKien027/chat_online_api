@@ -31,7 +31,14 @@ class PostLikeModel extends BaseModel
     // Kiểm tra người dùng đã thích bài viết chưa
     public function isPostLiked($postId, $userLikeId)
     {
-        $sql = "SELECT * FROM " . $this->getTable() . " WHERE post_id = :post_id AND user_like_id = :user_like_id";
+        $sql = " SELECT 
+           *
+        FROM 
+            post_like pl
+        LEFT JOIN 
+            post_share ps ON ps.post_id = :post_id
+        WHERE 
+            pl.post_id = :post_id AND pl.user_like_id = :user_like_id";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':post_id', $postId);
         $stmt->bindParam(':user_like_id', $userLikeId);

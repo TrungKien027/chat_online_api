@@ -9,6 +9,13 @@ require_once '../../source/models/PostShareModel.php';
 
 $data = json_decode(file_get_contents("php://input"));
 
+// Kiểm tra nếu không nhận được JSON hoặc JSON không đúng định dạng
+if (!$data) {
+    echo json_encode(["success" => false, "message" => "Không nhận được dữ liệu JSON."]);
+    exit;
+}
+
+// Kiểm tra xem các giá trị có được thiết lập hay không
 if (isset($data->post_id) && isset($data->user_share_id)) {
     $postShareModel = new PostShareModel();
     $result = $postShareModel->createPostShare($data->post_id, $data->user_share_id);
@@ -19,5 +26,5 @@ if (isset($data->post_id) && isset($data->user_share_id)) {
         echo json_encode(["success" => false, "message" => "Lỗi khi chia sẻ bài viết."]);
     }
 } else {
-    echo json_encode(["success" => false, "message" => "Thiếu dữ liệu."]);
+    echo json_encode(["success" => false, "message" => "Thiếu dữ liệu post_id hoặc user_share_id."]);
 }
