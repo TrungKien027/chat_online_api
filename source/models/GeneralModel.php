@@ -81,7 +81,7 @@ class GeneralModel extends BaseModel
                 LEFT JOIN 
                     post_comment_rep pcr ON pc.id = pcr.cmt_id
                 LEFT JOIN 
-                    media m ON pc.user_cmt_id = m.user_id
+                    media m ON pc.user_cmt_id = m.user_id AND m.is_avatar =1
                 WHERE 
                     pc.post_id = ?
                 ORDER BY 
