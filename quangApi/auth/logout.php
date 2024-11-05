@@ -15,7 +15,6 @@ $data = json_decode(file_get_contents("php://input"), true);
 if (isset($data['token'])) {
     // Lấy userId từ token (giả sử bạn có hàm để giải mã token)
     $userId = $token->verifyToken($data['token']);
-    
     // Gọi phương thức để cập nhật trạng thái người dùng
     if ($model->userUnActive($userId['user_id'])) {
         // Xóa token (nếu cần thiết, chẳng hạn trong database)
@@ -27,4 +26,3 @@ if (isset($data['token'])) {
 } else {
     echo json_encode(['success' => false, 'message' => 'Token not provided']);
 }
-
