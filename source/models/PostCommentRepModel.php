@@ -1,5 +1,5 @@
 <?php
-
+require_once 'BaseModel.php';   
 class PostCommentRepModel extends BaseModel
 {
     protected function getTable()

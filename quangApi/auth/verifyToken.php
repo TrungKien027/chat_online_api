@@ -15,12 +15,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Lấy token từ body của yêu cầu
     $data = json_decode(file_get_contents('php://input'), true);
     $token = isset($data['token']) ? $data['token'] : null;
-
     if ($token) {
         // Gọi hàm verifyToken để kiểm tra token
         $isValid = $tokenModel->verifyToken($token); // Đúng tên biến
         if ($isValid) {
-            echo json_encode(['success' => true, 'message' => 'Token hợp lệ']);
+            echo json_encode(['success' => true, 'message' => 'Token hợp lệ', 'userId' => $isValid['user_id']]);
         } else {
             echo json_encode(['success' => false, 'message' => 'Token không hợp lệ']);
         }
