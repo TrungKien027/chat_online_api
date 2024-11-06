@@ -59,8 +59,10 @@ class Post extends BaseModel
     users.name, 
     'original' AS post_type,
     media.url AS post_image_url,
+    NULL AS sharer_name,
     -- Subquery để lấy số lượt like cho mỗi bài viết
     (SELECT COUNT(*) FROM post_like WHERE post_like.post_id = posts.id) AS total_likes,
+     (SELECT COUNT(*) FROM post_comments WHERE post_comments.post_id = posts.id) AS total_cmt,
     -- Subquery để lấy số lượt share cho mỗi bài viết
     (SELECT COUNT(*) FROM post_share WHERE post_share.post_id = posts.id) AS share_count
 FROM 
@@ -69,6 +71,7 @@ INNER JOIN
     users ON users.id = posts.user_id 
 LEFT JOIN 
     media ON media.post_id = posts.id AND media.is_avatar = 0
+    
 WHERE 
     posts.user_id = :id
 
@@ -81,10 +84,11 @@ SELECT
     users.name AS user_name, 
     'shared' AS post_type,
     media.url AS post_image_url,
+    sharer.name AS sharer_name,
     -- Subquery để lấy số lượt like cho bài viết được chia sẻ
     -- (SELECT COUNT(*) FROM post_like WHERE post_like.post_id = posts.id) AS like_count,
      (SELECT COUNT(*) FROM post_like WHERE post_like.post_id = post_share.id) AS like_count,
-    -- Subquery để lấy số lượt share cho bài viết được chia sẻ
+    (SELECT COUNT(*) FROM post_comments WHERE post_comments.post_cmt_id = post_share.id) AS total_cmt,
     (SELECT COUNT(*) FROM post_share WHERE post_share.post_id = posts.id) AS share_count
 FROM 
     post_share 
@@ -94,11 +98,11 @@ INNER JOIN
     users ON users.id = posts.user_id 
 LEFT JOIN 
     media ON media.post_id = posts.id AND media.is_avatar = 0
+     INNER JOIN users AS sharer ON post_share.user_share_id = sharer.id 
 WHERE 
     post_share.user_share_id = :id
     ORDER BY 
     post_created_at DESC
-    ;  -- Thay thế 4 bằng user_id bạn muốn tìm
 
 ";
 
@@ -120,6 +124,7 @@ WHERE
             posts.id as id,
             posts.created_at AS post_created_at,  
             (SELECT COUNT(*) FROM post_like WHERE post_like.post_id = posts.id) AS total_likes,
+              (SELECT COUNT(*) FROM post_comments WHERE post_comments.post_id = posts.id) AS total_cmt,
             (SELECT COUNT(*) FROM post_share WHERE post_share.post_id = posts.id) AS share_count,
             'original' AS post_type,
             NULL AS sharer_name
@@ -157,6 +162,7 @@ WHERE
             posts.id as id,
             post_share.created_at AS post_created_at,
             (SELECT COUNT(*) FROM post_like WHERE post_like.post_id = posts.id) AS like_count,
+             (SELECT COUNT(*) FROM post_comments WHERE post_comments.post_cmt_id = post_share.id) AS total_cmt,
             (SELECT COUNT(*) FROM post_share WHERE post_share.post_id = posts.id) AS share_count,
             'shared' AS post_type,
             sharer.name AS sharer_name
