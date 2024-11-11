@@ -1,5 +1,5 @@
 <?php
-
+require_once 'BaseModel.php';
 class MediaModel extends BaseModel
 {
 
@@ -84,6 +84,14 @@ class MediaModel extends BaseModel
         $sql = "SELECT * FROM media WHERE post_id = :post_id";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':post_id', $post_id);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    public function getAvatarUser($user_id)
+    {
+        $sql = "SELECT * FROM media WHERE user_id = :user_id AND media.media_type = 'image' AND media.is_avatar = 1";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':user_id', $user_id);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }

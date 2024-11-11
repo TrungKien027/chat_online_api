@@ -1,5 +1,5 @@
 <?php
-
+require_once 'BaseModel.php';
 class PostCommentModel extends BaseModel
 {
     protected function getTable()
@@ -8,8 +8,16 @@ class PostCommentModel extends BaseModel
     }
 
     // Thêm bình luận mới
-    public function createComment($postId, $userCmtId, $content, $order)
+    public function createComment($postId, $userCmtId, $content)
     {
+        // Đầu tiên, lấy thứ tự hiện tại của các bình luận cho bài viết
+        $sqlOrder = "SELECT COALESCE(MAX(`order`), 0) + 1 AS next_order FROM " . $this->getTable() . " WHERE post_id = :post_id";
+        $stmtOrder = $this->conn->prepare($sqlOrder);
+        $stmtOrder->bindParam(':post_id', $postId);
+        $stmtOrder->execute();
+        $nextOrder = $stmtOrder->fetchColumn();
+
+        // Sau đó, chèn bình luận mới vào cơ sở dữ liệu
         $sql = "INSERT INTO " . $this->getTable() . " (post_id, user_cmt_id, content, `order`, created_at, updated_at) 
                 VALUES (:post_id, :user_cmt_id, :content, :order, NOW(), NOW())";
 
@@ -17,7 +25,7 @@ class PostCommentModel extends BaseModel
         $stmt->bindParam(':post_id', $postId);
         $stmt->bindParam(':user_cmt_id', $userCmtId);
         $stmt->bindParam(':content', $content);
-        $stmt->bindParam(':order', $order);
+        $stmt->bindParam(':order', $nextOrder); // Gán thứ tự mới cho bình luận
 
         return $stmt->execute();
     }

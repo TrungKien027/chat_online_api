@@ -163,7 +163,7 @@ class UserModel extends BaseModel
     public function searchUsers($keyword, $offset, $limit)
     {
         try {
-            $sql = "SELECT * FROM users WHERE name LIKE :keyword LIMIT :offset, :limit";
+            $sql = "SELECT *, users.id as iduser FROM users LEFT JOIN media ON media.user_id = users.id AND media.is_avatar = 1 WHERE name LIKE :keyword LIMIT :offset, :limit";
             $stmt = $this->conn->prepare($sql);
             $stmt->bindValue(':keyword', '%' . $keyword . '%', PDO::PARAM_STR);
             $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
@@ -175,7 +175,21 @@ class UserModel extends BaseModel
             return [];
         }
     }
-
+    public function checkFriendshipStatus($user_id, $friend_id) {
+        $sql = "
+        SELECT status FROM friendships 
+        WHERE (user_id = :user_id AND friend_id = :friend_id) 
+           OR (user_id = :friend_id AND friend_id = :user_id)
+        ";
+    
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+        $stmt->bindParam(':friend_id', $friend_id, PDO::PARAM_INT);
+        $stmt->execute();
+    
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? $result['status'] : null; // Trả về trạng thái nếu tìm thấy, hoặc null nếu không
+    }
     public function getFriendship($user_id)
     {
         $sql = "
@@ -198,13 +212,12 @@ WHERE
     public function make_friend($user_id)
     {
         $sql = "
-        SELECT media.url, f.friend_id , f.user_id as idf ,u.id, u.name, u.email, u.status, f.status AS friendship_status
+        SELECT media.url, f.friend_id, f.user_id AS idf, u.id, u.name, u.email, u.status, f.status AS friendship_status
 FROM friendships f
-LEFT JOIN users u ON (f.friend_id = u.id OR f.user_id = u.id)
+LEFT JOIN users u ON f.friend_id = u.id
 LEFT JOIN media ON media.user_id = u.id AND media.is_avatar = 1  
 WHERE 
-    (f.user_id = :user_id OR f.friend_id = :user_id)
-    AND u.id != :user_id
+    f.user_id = :user_id
     AND f.status = 'pending'
     ";
 
@@ -214,7 +227,7 @@ WHERE
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
+
 
     // Trả về tên bảng cho model này
     protected function getTable()
@@ -302,8 +315,20 @@ WHERE
         return $stmt->execute(); // Trả về true nếu thực thi thành công, ngược lại false
     }
 
-    public function acceptFriendRequest($userId, $friendId) {
+    public function acceptFriendRequest($userId, $friendId)
+    {
         $query = "UPDATE friendships SET status = 'accepted' 
+                  WHERE (user_id = :user_id AND friend_id = :friend_id) 
+                     OR (user_id = :friend_id AND friend_id = :user_id)
+                     AND status = 'pending'";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':user_id', $userId);
+        $stmt->bindParam(':friend_id', $friendId);
+        return $stmt->execute();
+    }
+    public function declineFriendRequest($userId, $friendId)
+    {
+        $query = "UPDATE friendships SET status = 'declined' 
                   WHERE (user_id = :user_id AND friend_id = :friend_id) 
                      OR (user_id = :friend_id AND friend_id = :user_id)
                      AND status = 'pending'";
