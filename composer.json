@@ -1,0 +1,22 @@
+{
+    "name": "your-username/websocket-package",
+    "description": "A simple WebSocket server for PHP",
+    "autoload": {
+        "psr-4": {
+            "WebSocketPackage\\": "src/"
+        }
+    },
+    "require": {
+        "cboden/ratchet": "^0.4.3"
+    },
+    "scripts": {
+        "start": "php startServer.php"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Your Name",
+            "email": "your-email@example.com"
+        }
+    ]
+}
