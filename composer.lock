@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "8c9cc31042f0abdbd74c6d3cf5ea81dd",
+    "content-hash": "1730b6d107d4aa6d15602bc169c17e65",
     "packages": [
         {
             "name": "cboden/ratchet",
@@ -1203,7 +1203,46 @@
             "time": "2023-01-01T08:36:10+00:00"
         }
     ],
-    "packages-dev": [],
+    "packages-dev": [
+        {
+            "name": "openswoole/ide-helper",
+            "version": "4.11.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/openswoole/ide-helper.git",
+                "reference": "6e8831af6dd34e24456cb98272373b030bce94df"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/openswoole/ide-helper/zipball/6e8831af6dd34e24456cb98272373b030bce94df",
+                "reference": "6e8831af6dd34e24456cb98272373b030bce94df",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.4"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.3"
+            },
+            "type": "library",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Open Swoole Group",
+                    "email": "hello@openswoole.com"
+                }
+            ],
+            "description": "IDE help files for Open Swoole.",
+            "support": {
+                "issues": "https://github.com/openswoole/ide-helper/issues",
+                "source": "https://github.com/openswoole/ide-helper/tree/4.11.6"
+            },
+            "time": "2022-08-03T13:28:52+00:00"
+        }
+    ],
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": [],
