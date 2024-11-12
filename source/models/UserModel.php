@@ -105,7 +105,8 @@ class UserModel extends BaseModel
     // Triển khai phương thức read để đọc dữ liệu từ bảng users
     public function getUserById($id)
     {
-        $sql = "SELECT * FROM " . $this->getTable() . " WHERE id = :id";
+        $sql = "SELECT * FROM " . $this->getTable() . " WHERE id = :id ";
+        $sql = "SELECT u.*, m.url FROM " . $this->getTable() . " as u LEFT JOIN media as m ON m.user_id = :id AND m.is_avatar = 1  WHERE u.id = :id";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([':id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -175,18 +176,19 @@ class UserModel extends BaseModel
             return [];
         }
     }
-    public function checkFriendshipStatus($user_id, $friend_id) {
+    public function checkFriendshipStatus($user_id, $friend_id)
+    {
         $sql = "
         SELECT status FROM friendships 
         WHERE (user_id = :user_id AND friend_id = :friend_id) 
            OR (user_id = :friend_id AND friend_id = :user_id)
         ";
-    
+
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
         $stmt->bindParam(':friend_id', $friend_id, PDO::PARAM_INT);
         $stmt->execute();
-    
+
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ? $result['status'] : null; // Trả về trạng thái nếu tìm thấy, hoặc null nếu không
     }
