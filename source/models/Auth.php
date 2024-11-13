@@ -12,7 +12,6 @@ class Auth
         $this->userModel = new UserModel();
         $this->tokenModel = new TokenModel();
     }
-
     public function login($email, $password)
     {
         // Bước 1: Kiểm tra xem người dùng có tồn tại không
@@ -20,17 +19,12 @@ class Auth
         if (!$user) {
             return ['success' => false, 'message' => 'Email không hợp lệ.'];
         }
-
         // Bước 2: Kiểm tra mật khẩu
         if (!$this->userModel->verifyPassword($password, $user['password'])) {
             return ['success' => false, 'message' => 'Mật khẩu không chính xác.'];
         }
-
-        // Bước 3: Lấy hoặc tạo token cho người dùng
-        $token = $this->tokenModel->getTokenByUserId($user['id']);
-        if (!$token) {
-            $token = $this->tokenModel->createToken($user['id']); // Tạo token nếu không có
-        }
+        // Bước 3: Tạo hoặc lấy token cho người dùng
+        $token = $this->createOrUpdateToken($user['id']);
 
         // Bước 4: Trả về thông tin người dùng và token
         return [
@@ -43,7 +37,22 @@ class Auth
             ],
         ];
     }
+    private function createOrUpdateToken($userId)
+    {
+        // Lấy token hiện tại
+        $token = $this->tokenModel->getTokenByUserId($userId);
 
+        if ($token) {
+            // Nếu có token, có thể muốn vô hiệu hóa token cũ trước khi tạo token mới
+            // $this->tokenModel->invalidateToken($token['id']); // Nếu bạn có phương thức này
+        } else {
+            // Nếu không có token, tạo token mới
+            $token = $this->tokenModel->createToken($userId);
+        }
+
+        // Nếu bạn cần thiết lập thời gian hết hạn cho token, hãy làm điều đó ở đây
+        return $token;
+    }
     public function logout($token)
     {
         // Bước 1: Kiểm tra xem token có hợp lệ không
