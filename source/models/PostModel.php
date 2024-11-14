@@ -5,8 +5,10 @@ class Post extends BaseModel
     protected function getTable()
     {
         return 'posts'; // Tên bảng
+
     }
 
+    private $table = 'posts';
     public function create(array $data)
     {
         $stmt = $this->conn->prepare("INSERT INTO " . $this->getTable() . " (user_id, content, created_at, updated_at) VALUES (?, ?, NOW(), NOW())");
@@ -466,5 +468,44 @@ LIMIT
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function createPost($user_id, $content, $media_files = []) {
+        // SQL tạo bài post mới
+        $sql = "INSERT INTO " . $this->table . " (user_id, content, created_at, updated_at) 
+                VALUES (:user_id, :content, NOW(), NOW())";
+
+        // Chuẩn bị câu lệnh SQL
+        $stmt = $this->conn->prepare($sql);
+        
+        // Ràng buộc tham số
+        $stmt->bindParam(':user_id', $user_id);
+        $stmt->bindParam(':content', $content);
+
+        // Kiểm tra nếu câu lệnh SQL thực thi thành công
+        if ($stmt->execute()) {
+            $postId = $this->conn->lastInsertId(); // Lấy ID của bài viết vừa tạo
+
+            // Nếu có media_files, thêm vào bảng media
+            if (!empty($media_files)) {
+                foreach ($media_files as $media) {
+                    // Thêm thông tin media vào cơ sở dữ liệu (có thể cần điều chỉnh theo cách lưu media của bạn)
+                    $media_sql = "INSERT INTO media (post_id, url, media_type) VALUES (:post_id, :url, :media_type)";
+                    $media_stmt = $this->conn->prepare($media_sql);
+                    $media_stmt->bindParam(':post_id', $postId);
+                    $media_stmt->bindParam(':url', $media['url']);
+                    $media_stmt->bindParam(':media_type', $media['media_type']);
+                    $media_stmt->execute();
+                }
+            }
+
+            return [
+                'post_id' => $postId,
+                'user_id' => $user_id,
+                'content' => $content,
+                'created_at' => date('Y-m-d H:i:s')
+            ];
+        }
+        return false;
     }
 }
