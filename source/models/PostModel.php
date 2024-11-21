@@ -219,183 +219,7 @@ WHERE
         }
     }
 
-    // public function searchPost($keyword, $offset, $limit, $currentUserId, $postFrom, $selectedOrder)
-    // {
-    //     try {
-    //         $sql = "";
-
-    //         // Truy vấn cho bài viết gốc
-    //         $sql .= "SELECT 
-    //         avatar_media.url AS urluser, 
-    //         avatar_post.url AS urlpost, 
-    //         users.name, 
-    //         posts.content, 
-    //         posts.id as post_id,
-    //         posts.created_at AS post_created_at,  -- Đặt alias cho created_at
-    //         (SELECT COUNT(*) FROM post_like WHERE post_like.post_id = posts.id) AS like_count,
-    //         (SELECT COUNT(*) FROM post_share WHERE post_share.post_id = posts.id) AS share_count,
-    //         'original' AS post_type,
-    //          NULL AS sharer_name
-    //         FROM posts 
-    //         JOIN users ON posts.user_id = users.id 
-    //         LEFT JOIN media AS avatar_media ON avatar_media.user_id = users.id AND avatar_media.is_avatar = 1 
-    //         LEFT JOIN media AS avatar_post ON avatar_post.post_id = posts.id AND avatar_post.is_avatar = 0 
-    //         WHERE (posts.content LIKE :keyword 
-    //             OR MATCH(posts.content) AGAINST (:keyword IN BOOLEAN MODE))";
-
-    //         // Thêm các điều kiện lọc theo `postFrom`
-    //         if ($postFrom == 1) {
-    //             // Lọc bài viết từ bạn bè
-    //             $sql .= " AND posts.user_id IN (
-    //             SELECT friend_id FROM friendships 
-    //             WHERE user_id = :currentUserId AND status = 'accepted'
-    //         )";
-    //         } elseif ($postFrom == 2) {
-    //             // Lọc bài viết từ người khác, không bao gồm bài viết của chính user
-    //             $sql .= " AND posts.user_id NOT IN (
-    //             SELECT friend_id FROM friendships 
-    //             WHERE user_id = :currentUserId AND status = 'accepted'
-    //         ) 
-    //         AND posts.user_id != :currentUserId";
-    //         }
-
-    //         $sql .= " GROUP BY posts.id, avatar_media.url, avatar_post.url, users.name, posts.content, posts.created_at";
-
-    //         // UNION ALL với truy vấn cho bài viết đã được chia sẻ
-    //         $sql .= " UNION ALL 
-    //         SELECT 
-    //         avatar_post.url AS post_image_url,
-    //         avatar.url AS post_image_url,
-    //             users.name,
-    //             posts.content , 
-    //             posts.id as post_id,
-    //             post_share.created_at ,
-
-    //             (SELECT COUNT(*) FROM post_like WHERE post_like.post_id = posts.id) AS like_count,
-    //             (SELECT COUNT(*) FROM post_share WHERE post_share.post_id = posts.id) AS share_count,
-    //             'shared' AS post_type,
-    //              sharer.name AS sharer_name
-    //         FROM 
-    //             post_share 
-    //             INNER JOIN 
-    //             users AS sharer ON post_share.user_share_id = sharer.id 
-    //         INNER JOIN 
-    //             posts ON post_share.post_id = posts.id 
-    //         INNER JOIN 
-    //             users ON users.id = posts.user_id 
-    //         LEFT JOIN 
-    //             media as avatar_post ON avatar_post.post_id = posts.id AND avatar_post.is_avatar = 0
-    //          LEFT JOIN 
-    //             media as avatar ON avatar.post_id = posts.id AND avatar.is_avatar = 1  
-
-    //         WHERE posts.content LIKE :keyword OR MATCH(posts.content) AGAINST (:keyword IN BOOLEAN MODE)";
-
-    //         // Thay đổi ORDER BY để sử dụng alias 'post_created_at'
-    //         if ($selectedOrder == 1) {
-    //             $sql .= " ORDER BY post_created_at DESC"; // Sắp xếp theo thời gian mới nhất
-    //         } elseif ($selectedOrder == 2) {
-    //             $sql .= " ORDER BY post_created_at ASC"; // Sắp xếp theo thời gian cũ nhất
-    //         }
-
-    //         $sql .= " LIMIT :offset, :limit";
-
-    //         $stmt = $this->conn->prepare($sql);
-    //         $stmt->bindValue(':keyword', '%' . $keyword . '%', PDO::PARAM_STR);
-
-    //         if ($postFrom == 1 || $postFrom == 2) {
-    //             $stmt->bindValue(':currentUserId', $currentUserId, PDO::PARAM_INT);
-    //         }
-
-    //         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    //         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-    //         $stmt->execute();
-
-    //         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    //     } catch (PDOException $e) {
-    //         echo "Error: " . $e->getMessage();
-    //         return [];
-    //     }
-    // }
-
-    // public function searchPost($keyword, $offset, $limit, $currentUserId, $postFrom, $selectedOrder)
-    // {
-    //     try {
-    //         $sql = "(SELECT 
-    //         posts.id AS post_id, 
-    //         posts.content AS post_content, 
-    //         posts.created_at AS post_created_at,
-    //         users.name AS user_name, 
-    //         'original' AS post_type,
-    //         media.url AS post_image_url,
-    //         (SELECT COUNT(*) FROM post_like WHERE post_like.post_id = posts.id) AS like_count,
-    //         (SELECT COUNT(*) FROM post_share WHERE post_share.post_id = posts.id) AS share_count
-    //     FROM 
-    //         posts 
-    //     INNER JOIN 
-    //         users ON users.id = posts.user_id 
-    //     LEFT JOIN 
-    //         media ON media.post_id = posts.id AND media.is_avatar = 0
-    //     WHERE 
-    //         (posts.content LIKE :keyword OR MATCH(posts.content) AGAINST (:keyword IN BOOLEAN MODE))";
-
-    //         // Áp dụng điều kiện lọc theo nguồn bài viết
-    //         if ($postFrom == 1) {
-    //             $sql .= " AND posts.user_id IN (
-    //             SELECT friend_id FROM friendships 
-    //             WHERE user_id = :currentUserId AND status = 'accepted'
-    //           ) ";
-    //         } elseif ($postFrom == 2) {
-    //             $sql .= " AND posts.user_id NOT IN (
-    //             SELECT friend_id FROM friendships 
-    //             WHERE user_id = :currentUserId AND status = 'accepted'
-    //           ) 
-    //           AND posts.user_id != :currentUserId ";
-    //         }
-
-    //         $sql .= ") UNION ALL (SELECT 
-    //         posts.id AS post_id, 
-    //         posts.content AS post_content, 
-    //         post_share.created_at AS post_created_at,
-    //         users.name AS user_name, 
-    //         'shared' AS post_type,
-    //         media.url AS post_image_url,
-    //         (SELECT COUNT(*) FROM post_like WHERE post_like.post_id = posts.id) AS like_count,
-    //         (SELECT COUNT(*) FROM post_share WHERE post_share.post_id = posts.id) AS share_count
-    //     FROM 
-    //         post_share 
-    //     INNER JOIN 
-    //         posts ON post_share.post_id = posts.id 
-    //     INNER JOIN 
-    //         users ON users.id = posts.user_id 
-    //     LEFT JOIN 
-    //         media ON media.post_id = posts.id AND media.is_avatar = 0
-    //     WHERE 
-    //         (posts.content LIKE :keyword OR MATCH(posts.content) AGAINST (:keyword IN BOOLEAN MODE)))";
-
-    //         // Sắp xếp kết quả sau khi kết hợp
-    //         $sql .= " ORDER BY post_created_at " . ($selectedOrder == 1 ? "DESC" : "ASC");
-
-    //         // Giới hạn số lượng bài viết
-    //         $sql .= " LIMIT :offset, :limit";
-
-    //         // Chuẩn bị câu truy vấn với PDO
-    //         $stmt = $this->conn->prepare($sql);
-
-    //         // Ràng buộc các tham số
-    //         $stmt->bindValue(':keyword', '%' . $keyword . '%', PDO::PARAM_STR);
-    //         if ($postFrom == 1 || $postFrom == 2) {
-    //             $stmt->bindValue(':currentUserId', $currentUserId, PDO::PARAM_INT);
-    //         }
-    //         $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-    //         $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-
-    //         // Thực thi câu truy vấn và lấy kết quả
-    //         $stmt->execute();
-    //         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    //     } catch (PDOException $e) {
-    //         return ['error' => $e->getMessage()];
-    //     }
-    // }
+    
 
     public function getPostsByUserIdInfo($userId)
     {
@@ -507,5 +331,19 @@ LIMIT
             ];
         }
         return false;
+    }
+    public function deletePostById($id) {
+        $sql = "DELETE FROM posts WHERE id = :id";
+
+        try {
+            $stmt = $this->db->prepare($sql);
+            $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+
+            return $stmt->execute(); // Trả về true nếu xóa thành công
+        } catch (PDOException $e) {
+            // Ghi log lỗi nếu cần
+            error_log("Error deleting post: " . $e->getMessage());
+            return false; // Trả về false nếu có lỗi
+        }
     }
 }
